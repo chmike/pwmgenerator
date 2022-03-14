@@ -1,0 +1,11 @@
+#!/bin/bash 
+gcc -I. *.c -O3 -latomic -lm -lpthread -Wall -o pwmgenerator
+
+if [ $? != 0 ]; then
+  exit $?
+fi
+echo "compiled"
+sudo systemctl stop generator.service
+sudo cp pwmgenerator /usr/local/bin/generator
+sudo systemctl start generator.service
+echo "installed"
