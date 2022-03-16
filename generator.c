@@ -23,7 +23,7 @@ char stats[16];
 
 uint64_t getTimeStamp() {
   struct timespec t;
-  if(clock_gettime(CLOCK_MONOTONIC_RAW, &t) < 0) {
+  if(clock_gettime(CLOCK_MONOTONIC_COARSE, &t) < 0) {
     printErr("getTimeStamp: %s\n", strerror(errno));
     return 0;
   }
