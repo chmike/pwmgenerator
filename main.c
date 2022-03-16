@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr,"failed writing performance to /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor");
     return 1;
   }
-  fprintf(f, "performance");
+  fprintf(f, "performance\n");
   fclose(f);
 
   // initialize GPIO
