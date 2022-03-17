@@ -26,29 +26,30 @@ int main(int argc, char *argv[]) {
     port = 1234;
 
 
-  FILE *f = fopen("/proc/sys/kernel/sched_rt_runtime_us", "w");
-  if(f == NULL) {
-    fprintf(stderr,"failed writing -1 to /proc/sys/kernel/sched_rt_runtime_us");
-    return 1;
-  }
-  fprintf(f, "-1");
-  fclose(f);
-
-  f = fopen("/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor", "w");
-  if(f == NULL) {
-    fprintf(stderr,"failed writing performance to /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor");
-    return 1;
-  }
-  fprintf(f, "performance\n");
-//  fprintf(f, "powersave\n");
-  fclose(f);
-
   // initialize GPIO
   int res = gpio_init();
   if(res < 0)
     exit(-1);
   if(res == 1)
     print("non-rasberry host: writing to gpio has no effect\n");
+  else {
+    FILE *f = fopen("/proc/sys/kernel/sched_rt_runtime_us", "w");
+    if(f == NULL) {
+      fprintf(stderr,"failed writing -1 to /proc/sys/kernel/sched_rt_runtime_us");
+      return 1;
+    }
+    fprintf(f, "-1");
+    fclose(f);
+
+    f = fopen("/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor", "w");
+    if(f == NULL) {
+      fprintf(stderr,"failed writing performance to /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor");
+      return 1;
+    }
+    fprintf(f, "performance\n");
+    fclose(f);
+  }
+
 
 
   printErr("main error: %d\n", serve(port));
