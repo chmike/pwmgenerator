@@ -8,8 +8,8 @@ import (
 )
 
 var config = map[int]pwmgenerator.Param{
-	0: {Type: pwmgenerator.CST, Average: .1},
-	1: {Type: pwmgenerator.TRI, Average: .5, Amplitude: .5, Period: 0.003},
+	1: {Type: pwmgenerator.CST, Average: .1},
+	0: {Type: pwmgenerator.TRI, Average: .5, Amplitude: .5, Period: 0.003},
 	2: {Type: pwmgenerator.SIN, Average: .5, Amplitude: .5, Period: 1},
 	3: {Type: pwmgenerator.SIN, Average: .5, Amplitude: .5, Period: 1},
 	4: {Type: pwmgenerator.SIN, Average: .5, Amplitude: .5, Period: 1},
