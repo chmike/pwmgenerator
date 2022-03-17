@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   fprintf(f, "performance\n");
+//  fprintf(f, "powersave\n");
   fclose(f);
 
   // initialize GPIO
