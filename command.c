@@ -12,7 +12,7 @@
 #include <errno.h>
 
 
-char *version = "v0.1.0";
+char *version = "v0.1.1";
 
 #define PI 3.14159265358979323846
 
