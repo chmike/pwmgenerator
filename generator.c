@@ -77,8 +77,8 @@ void* generator(void *unused) {
         if (dy == 0) {
           // constant or sinusoidal values
           double x = genParams[ch].x, c = genParams[ch].c, s = genParams[ch].s;
-          genParams[ch].y = y*c - x*s; // c and s are premultiplied by a
-          genParams[ch].x = x*c + y*s;
+          genParams[ch].y = y*c + x*s; // c and s are premultiplied by a
+          genParams[ch].x = x*c - y*s;
         } else {
           // triangular values
           y += dy;
