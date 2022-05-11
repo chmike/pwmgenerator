@@ -227,7 +227,7 @@ int serve(unsigned short port) {
     if(setsockopt(newConn.fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) != 0){
       printErr("serve warning: failed setting TCP_NODELAY\n");
     }   
-    if(setTimeOut(&newConn, 500) != 0) {
+    if(setTimeOut(&newConn, 10000) != 0) {
       printErr("serve warning: set timeout: %s\n", strerror(errno));
       continue;
     }
