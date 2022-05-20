@@ -5,14 +5,14 @@
 
 #define NCHAN  8
 
-#define CHAN0 2 /* GPIO 2 */ 
-#define CHAN1 3 /* GPIO 3 */
-#define CHAN2 4 /* GPIO 4 */
-#define CHAN3 5 /* GPIO 5 */
-#define CHAN4 6 /* GPIO 6 */
-#define CHAN5 7 /* GPIO 7 */
-#define CHAN6 8 /* GPIO 8 */
-#define CHAN7 9 /* GPIO 9 */
+#define CHAN0  9 /* GPIO  9 */ 
+#define CHAN1 10 /* GPIO 10 */
+#define CHAN2 11 /* GPIO 11 */
+#define CHAN3 12 /* GPIO 12 */
+#define CHAN4 13 /* GPIO 13 */
+#define CHAN5 14 /* GPIO 14 */
+#define CHAN6 15 /* GPIO 15 */
+#define CHAN7 16 /* GPIO 16 */
 
 #define CHAN0BIT (1<<CHAN0) 
 #define CHAN1BIT (1<<CHAN1)
