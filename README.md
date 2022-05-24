@@ -251,6 +251,15 @@ effect of a connection attempt when there is an active connection.
 
 The channels 0 to 7 are mapped to the GPIO output 2 to 9. 
 
+## Testing with bash
+
+- Establish a connection on file descriptor 5: `$ exec 5<>/dev/tcp/192.168.1.11/4000`
+- Immediately send the handshake: `$ echo "PWM0" >&5`
+- Read the response: `$ head -r 1 <&5` should be `>HELO v0.1.1 12bits`
+- Configure all the channels: `echo "SPRM 8, 0 CST 0.1 0 0 0, 1 CST 0.2 0 0 0, 2 CST 0.3 0 0 0, 3  CST 0.4 0 0 0, 4 CST 0.5 0 0 0, 5 CST 0.6 0 0 0, 6 CST 0.7 0 0 0, 7 CST 0.8 0 0 0" >&5`
+- Read result: `$ head -r 1 <&5` should be ">DONE"
+- Close the connection: `exec 5>&-`
+
 ## TODO
 
 - [ ] replace pointers in conn_t by indices to make it copyable
