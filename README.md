@@ -262,7 +262,5 @@ The channels 0 to 7 are mapped to the GPIO output 2 to 9.
 
 ## TODO
 
-- [ ] replace pointers in conn_t by indices to make it copyable
 - [ ] create logger function with levels
-- [ ] verify code validity by reading
 - [ ] run fuzzer to test robustness
