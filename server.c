@@ -26,7 +26,7 @@ conn_t newConn, conn;
 void reset(conn_t *c) {
   c->fd = -1;
   c->len = 0;
-  c->beg = c->end = c->req;
+  c->beg = c->end = 0;
   c->addrStr[0] = '\0';
 }
 
@@ -45,31 +45,33 @@ int setTimeOut(conn_t *c,int ms) {
 // return value <= 0 is a fatal error. The connection should be 
 // closed and the buffer reset.
 int recvReq(conn_t *c) {
-  // pop previous request
-  int len = c->end-c->beg;
-  if(len > 0)
-    memmove(c->req, c->beg, len);
-  c->beg = c->req;
-  c->end = c->req + len;
+  // pop previous request if any
+  if(c->beg != 0) {
+    c->end -= c->beg;
+    if(c->end > 0)
+      memmove(c->req, c->req+c->beg, c->end);
+    c->beg = 0;
+  }
   // check if there is already a full line in buffer
-  while(c->beg < c->end && *c->beg != '\n')
+  while(c->beg < c->end && c->req[c->beg] != '\n')
     c->beg++;
   if(c->beg < c->end) {
-    // we found a \n
+    // we found a \n at indice c->beg, include also the \n
     c->beg++;
     //print("debug: received request:\n");
-    hexdump(c->req, c->beg-c->req);
-    return c->beg-c->req;
+    //hexdump(c->req, c->beg-c->req);
+    return c->beg;
   }
-  bool start = c->beg == c->req;
+  bool start = c->beg == 0;
   while(1) {
-    if(c->end == c->req+BUFFER_SIZE)
+    if(c->end == BUFFER_SIZE)
       return -2;
     if(start)
+      // no timout, wait forever
       start = false;
     else
       setTimeOut(c, 500);
-    ssize_t n = read(c->fd, c->end, c->req+BUFFER_SIZE - c->end);
+    ssize_t n = read(c->fd, c->req+c->end, BUFFER_SIZE - c->end);
     if(n <= 0) {
       if(n == -1) {
         //print("debug: recvReq: read error %d\n", errno);
@@ -79,14 +81,14 @@ int recvReq(conn_t *c) {
     }
     setTimeOut(c, 0);
     c->end += n;
-    while(c->beg < c->end && *c->beg != '\n')
+    while(c->beg < c->end && c->req[c->beg] != '\n')
       c->beg++;
     if(c->beg < c->end) {
-      // we found a \n
+      // we found a \n at indice c->beg, include also the \n
       c->beg++;
       // print("received request:\n");
       // hexdump(c->req, c->beg-c->req);
-      return c->beg-c->req;
+      return c->beg;
     }
   }
 }

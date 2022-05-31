@@ -304,12 +304,13 @@ void* commandHandler(void* dummy) {
       res = sendError(&conn, "invalid request \"%.*s\"", res, conn.req);
       continue;
     }
+    char *end = conn.req+res;
     if(memcmp(conn.req, "GPRM", 4) == 0) {
-      res = requestGetParams(conn.req+4, conn.beg);
+      res = requestGetParams(conn.req+4, end);
     } else if(memcmp(conn.req, "SPRM ", 5) == 0) {
-      res = requestSetParams(conn.req+5, conn.beg);
+      res = requestSetParams(conn.req+5, end);
     } else if(memcmp(conn.req, "FREQ", 4) == 0) {
-      res = requestFrequency(conn.req+4, conn.beg);
+      res = requestFrequency(conn.req+4, end);
     } else {
       printErr("command warning: received undefined request \"%.*s\" from %s\n", res, conn.req, conn.addrStr);
       res = sendError(&conn, "undefined request \"%.*s\"", res-1, conn.req);

@@ -12,7 +12,7 @@ typedef struct {
   int fd, len;
   char rsp[BUFFER_SIZE];
   char req[BUFFER_SIZE];
-  char *beg, *end;
+  uint16_t beg, end;
   char addrStr[256];
 } conn_t;
 
