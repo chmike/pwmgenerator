@@ -214,7 +214,7 @@ int requestSetParams(char *beg, char *end) {
   int len = end-beg, consumed;
   int n = sscanf(p, "%d%n", &nParams, &consumed);
   if(n <= 0) {
-    printErr("requestSetParams: failed parsing \"%.*s\" (%d)", len, beg, n);
+    printErr("requestSetParams: failed parsing \"%.*s\" (%d)\n", len, beg, n);
     return sendError(&conn, "invalid arguments");
   }
   p += consumed;
@@ -225,13 +225,13 @@ int requestSetParams(char *beg, char *end) {
     double average = 0, amplitude = 0, period = 0, start = 0;
     n = sscanf(p, ", %d %3s %lg %lg %lg %lg%n", &ch, type, &average, &amplitude, &period, &start, &consumed);
     if(n <= 0) {
-      printErr("requestSetParams: failed parsing \"%.*s\" (%d)", (int)(end-beg)-1, beg, n);
+      printErr("requestSetParams: failed parsing \"%.*s\" (%d)\n", (int)(end-beg)-1, beg, n);
       return sendError(&conn, "invalid arguments");
     }
     p += consumed;
     len -= consumed;
     if(ch < 0 || ch >= NCHAN) {
-      printErr("requestSetParams: invalid channel %d", ch);
+      printErr("requestSetParams: invalid channel %d\n", ch);
       return sendError(&conn, "channel number out of range");
     }
     if(strcmp(type, "CST") == 0)
@@ -241,7 +241,7 @@ int requestSetParams(char *beg, char *end) {
     else if(strcmp(type, "TRI") == 0)
       newCmdParams[ch].type = 2;
     else {
-      printErr("requestSetParams: channel %d assigned invalid type %s", ch, type);
+      printErr("requestSetParams: channel %d assigned invalid type %s\n", ch, type);
       return sendError(&conn, "channel %d assigned invalid type %s", ch, type);
     }
     hasCmdParams[ch] = true;
@@ -256,7 +256,7 @@ int requestSetParams(char *beg, char *end) {
       continue;
     char *err = checkParams(ch, newCmdParams+ch);
     if(err != NULL) {
-      printErr("requestSetParams: error: %s", err);
+      printErr("requestSetParams: error: %s\n", err);
       return sendError(&conn, err);
     }
   }
@@ -281,7 +281,7 @@ int requestSetParams(char *beg, char *end) {
 
 int requestFrequency(char *beg, char *end) {
   if(beg == end || *beg != '\n')
-    return sendError(&conn, "unexpected data after \"FREQ\"");
+    return sendError(&conn, "unexpected data after \"FREQ\"\n");
   for(int i = 0; i < 4 && frequencyMean == 0; i++)
     sleep(1);
   return sendRsp(&conn, "%g %g", frequencyMean, sqrt(frequencyVariance));
@@ -301,7 +301,7 @@ void* commandHandler(void* dummy) {
       break;
     if(res < 5) {
       printErr("command warning: received invalid request \"%.*s\" from %s\n", res, conn.req, conn.addrStr);
-      res = sendError(&conn, "invalid request \"%.*s\"\n", res, conn.req);
+      res = sendError(&conn, "invalid request \"%.*s\"", res, conn.req);
       continue;
     }
     if(memcmp(conn.req, "GPRM", 4) == 0) {

@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   else {
     FILE *f = fopen("/proc/sys/kernel/sched_rt_runtime_us", "w");
     if(f == NULL) {
-      fprintf(stderr,"failed writing -1 to /proc/sys/kernel/sched_rt_runtime_us");
+      fprintf(stderr, "failed writing -1 to /proc/sys/kernel/sched_rt_runtime_us\n");
       return 1;
     }
     fprintf(f, "-1");
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     f = fopen("/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor", "w");
     if(f == NULL) {
-      fprintf(stderr,"failed writing performance to /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor");
+      fprintf(stderr,"failed writing performance to /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor\n");
       return 1;
     }
     fprintf(f, "performance\n");

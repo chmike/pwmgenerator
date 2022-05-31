@@ -39,7 +39,7 @@ int recvReq(conn_t *c);
 // had to be appended.
 int sendRsp(conn_t *c, const char *format, ...);
 
-// sendError is like sendRsp, but sends an error message instead.
+// sendError sends an error message. Appends '\n' if missing.
 int sendError(conn_t *c, const char *format, ...);
 
 // close the current connection.

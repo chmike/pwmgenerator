@@ -141,7 +141,7 @@ int sendRsp(conn_t *c, const char *format, ...) {
   return sendRspBuf(c);
 }
 
-// sendError returns an error message.
+// sendError sends an error message. Appends '\n' if missing.
 int sendError(conn_t *c, const char *format, ...) {
   strcpy(c->rsp, "!");
   c->len = 1;
