@@ -21,6 +21,9 @@ volatile int gpioReg;
 volatile double frequencyMean;                   // mean frequency with exponentialy decaying weighting
 volatile double frequencyVariance;               // frequency variance with exponentialy decaying weighting
 char stats[16];
+volatile uint64_t dummy; 
+
+#define PAUSE_VALUE 10000
 
 uint64_t getTimeStamp() {
   struct timespec t;
@@ -40,8 +43,6 @@ void* generator(void *unused) {
     newParams[ch] = genParams[ch];
   frequencyMean = 0;
   frequencyVariance = 0;
-  struct timespec tv;
-  tv.tv_sec = 0;
 
   // loop forever
   uint64_t begin_time = getTimeStamp();
@@ -103,22 +104,12 @@ void* generator(void *unused) {
         flag |= gpioBits[ch] & (pwmval[ch]>>(sizeof(int)*8-1));
       }
       //print("chunkIter=%d flag=%08X\n", chunkIter, flag);
+      for(int k = 0; k < PAUSE_VALUE; k++)
+        dummy++;
       *gpioSet = flag;
       *gpioClr = flag^CHAN_MASK;
     }
   
-    uint64_t delta_time = getTimeStamp() - begin_time;
-    uint64_t sleep_time = 100000000; // 10Hz is 100ms
-    if(delta_time >= sleep_time)
-      sleep_time = 0;
-    else 
-      sleep_time -= delta_time;
-    // sleep, see : https://www.informit.com/articles/article.aspx?p=23618&seqNum=11
-    tv.tv_nsec = (long)sleep_time;
-    while(nanosleep(&tv, &tv) < 0)
-      if(errno != EINTR)
-        break;
-
     // update the mean frequency and its variance
     // see: https://forge.in2p3.fr/dmsf/files/17104/view
     uint64_t end_time = getTimeStamp();
