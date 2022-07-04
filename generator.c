@@ -23,7 +23,7 @@ volatile double frequencyVariance;               // frequency variance with expo
 char stats[16];
 volatile uint64_t dummy; 
 
-#define PAUSE_VALUE 2000
+#define PAUSE_VALUE 6260
 
 uint64_t getTimeStamp() {
   struct timespec t;
