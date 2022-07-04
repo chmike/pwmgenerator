@@ -4,6 +4,7 @@
 #include "generator.h"
 #include "hexdump.h"
 #include "print.h"
+#include "thread.h"
 
 #include <stdio.h>
 #include <unistd.h>

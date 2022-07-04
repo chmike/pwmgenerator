@@ -10,6 +10,7 @@
 #include <errno.h>
 
 
+
 volatile genParams_t newParams[NCHAN];           // new parameters set by main thread
 volatile uint32_t newParamFlags;                 // bit set by main thread for each new params
 atomic_flag newParamsLock = ATOMIC_FLAG_INIT;    // lock protecting newParams access
@@ -31,8 +32,6 @@ uint64_t getTimeStamp() {
 }
 
 void* generator(void *unused) {
-  uint64_t before;
-
   // printThreadSched("generator info: started");
 
   // reset global state
@@ -41,11 +40,12 @@ void* generator(void *unused) {
     newParams[ch] = genParams[ch];
   frequencyMean = 0;
   frequencyVariance = 0;
+  struct timespec tv;
+  tv.tv_sec = 0;
 
   // loop forever
-  before = getTimeStamp();
+  uint64_t begin_time = getTimeStamp();
   while(1) {
-
     // get new params if any
     while(atomic_flag_test_and_set(&newParamsLock));
     uint16_t flags = newParamFlags;
@@ -67,55 +67,68 @@ void* generator(void *unused) {
       newParamFlags = 0;
     }
     atomic_flag_clear(&newParamsLock);
-    // for each pwm values in a chunk
-    for(int chunkIter = 0; chunkIter < CHUNK_SIZE; chunkIter++) {
-      int pwmval[NCHAN];
-      // compute the channel values
-      for(int ch = 0; ch < NCHAN; ch++) {
-        double y = genParams[ch].y, dy = genParams[ch].dy;
-        double val = genParams[ch].y0 + y;
-        if (dy == 0) {
-          // constant or sinusoidal values
-          double x = genParams[ch].x, c = genParams[ch].c, s = genParams[ch].s;
-          genParams[ch].y = y*c + x*s; // c and s are premultiplied by a
-          genParams[ch].x = x*c - y*s;
-        } else {
-          // triangular values
-          y += dy;
-          double a = genParams[ch].a; 
-          if (y > a) {
-            y = 2*a - y;
-            genParams[ch].dy = -dy;
-          } else if (y < -a) {
-            y = -2*a - y; 
-            genParams[ch].dy = -dy;
-          }
-          genParams[ch].y = y;
+
+    // for each pwm values
+    int pwmval[NCHAN];
+    // compute the channel values
+    for(int ch = 0; ch < NCHAN; ch++) {
+      double y = genParams[ch].y, dy = genParams[ch].dy;
+      double val = genParams[ch].y0 + y;
+      if (dy == 0) {
+        // constant or sinusoidal values
+        double x = genParams[ch].x, c = genParams[ch].c, s = genParams[ch].s;
+        genParams[ch].y = y*c + x*s; // c and s are premultiplied by a
+        genParams[ch].x = x*c - y*s;
+      } else {
+        // triangular values
+        y += dy;
+        double a = genParams[ch].a; 
+        if (y > a) {
+          y = 2*a - y;
+          genParams[ch].dy = -dy;
+        } else if (y < -a) {
+          y = -2*a - y; 
+          genParams[ch].dy = -dy;
         }
-        //print("ch=%d val=%.3f int=%d\n", ch, val, -1-(int)(val*MAX_VALUE+.5));
-        pwmval[ch] = -1-(int)(val*MAX_VALUE+.5);
+        genParams[ch].y = y;
       }
-      // generate the pwm value
-      for(int i = 0; i < MAX_VALUE; i++) {
-        uint32_t flag = 0;
-        for(int ch = 0; ch < NCHAN; ch++) {
-          pwmval[ch]++;
-          flag |= gpioBits[ch] & (pwmval[ch]>>(sizeof(int)*8-1));
-        }
-        //print("chunkIter=%d flag=%08X\n", chunkIter, flag);
-        *gpioSet = flag;
-        *gpioClr = flag^CHAN_MASK;
-      }
+      //print("ch=%d val=%.3f int=%d\n", ch, val, -1-(int)(val*MAX_VALUE+.5));
+      pwmval[ch] = -1-(int)(val*MAX_VALUE+.5);
     }
+    // generate the pwm value
+    for(int i = 0; i < MAX_VALUE; i++) {
+      uint32_t flag = 0;
+      for(int ch = 0; ch < NCHAN; ch++) {
+        pwmval[ch]++;
+        flag |= gpioBits[ch] & (pwmval[ch]>>(sizeof(int)*8-1));
+      }
+      //print("chunkIter=%d flag=%08X\n", chunkIter, flag);
+      *gpioSet = flag;
+      *gpioClr = flag^CHAN_MASK;
+    }
+  
+    uint64_t delta_time = getTimeStamp() - begin_time;
+    uint64_t sleep_time = 100000000; // 10Hz is 100ms
+    if(delta_time >= sleep_time)
+      sleep_time = 0;
+    else 
+      sleep_time -= delta_time;
+    // sleep, see : https://www.informit.com/articles/article.aspx?p=23618&seqNum=11
+    tv.tv_nsec = (long)sleep_time;
+    while(nanosleep(&tv, &tv) < 0)
+      if(errno != EINTR)
+        break;
+
     // update the mean frequency and its variance
     // see: https://forge.in2p3.fr/dmsf/files/17104/view
-    uint64_t after = getTimeStamp();
-    double timeDiff = (double)(after - before) *1e-9, frequency;
-    before = after;
-    if(timeDiff == 0.)
-      frequency = 0;
+    uint64_t end_time = getTimeStamp();
+    double timeDiff = (double)(end_time - begin_time) *1e-9, frequency;
+    // print("debug: timeDiff: %fs\n", timeDiff);
+    begin_time = end_time;
+    if(timeDiff != 0)
+      frequency = 1/timeDiff;
     else
-      frequency = CHUNK_SIZE/timeDiff;
+      frequency = 0;
     if(frequencyMean == 0) {
       frequencyMean = frequency;
       frequencyVariance = 0;
@@ -127,7 +140,7 @@ void* generator(void *unused) {
       frequencyVariance = (1 - alpha)*(frequencyVariance + delta*incr);
       frequencyMean = mean;
     }
-    //print("debug: frequency: mean: %.2f Hz stdDev: %.2f \n", frequencyMean, sqrt(frequencyVariance));
+    // print("debug: frequency: mean: %.2f Hz stdDev: %.2f \n", frequencyMean, sqrt(frequencyVariance));
   }
   // print("generator info: stopped\n");
   return NULL;

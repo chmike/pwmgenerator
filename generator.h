@@ -35,7 +35,4 @@ extern volatile double frequencyVariance;     // frequency variance with exponen
 
 void* generator(void *);
 
-int startPinnedThread(int coreID, void*(*thread)(void*));
-int print_thread_sched();
-
 #endif // GENERATOR_H
