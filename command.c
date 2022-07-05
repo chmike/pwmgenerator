@@ -136,7 +136,7 @@ char* checkParams(int ch, cmdParams_t *p) {
 void convertParams(volatile genParams_t *g, cmdParams_t *p){
   double pulsePerSeconds = frequencyMean, pulsePerPeriod;
   if(pulsePerSeconds == 0)
-    pulsePerSeconds = 10156.78; // measure on raspberry PI4
+    pulsePerSeconds = 10.; // measure on raspberry PI4
   switch(p->type) {
   case CST_PARAM:
     g->a = g->dy = g->x = g->y = g->c = g->s = 0;
